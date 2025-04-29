@@ -24,7 +24,15 @@ export default function SignIn() {
       });
 
       if (result?.error) {
-        setError('登录失败，请检查账号密码');
+        if (result.error === "用户不存在") {
+          setError('用户不存在');
+        } else if (result.error === "密码错误") {
+          setError('密码错误');
+        } else if (result.error === "用户名和密码不能为空") {
+          setError('用户名和密码不能为空');
+        } else {
+          setError('登录失败');
+        }
       } else {
         router.push('/');
         router.refresh();
