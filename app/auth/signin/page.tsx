@@ -24,7 +24,7 @@ export default function SignIn() {
       });
 
       if (result?.error) {
-        setError('登录失败，请检查邮箱和密码');
+        setError('登录失败，请检查账号密码');
       } else {
         router.push('/');
         router.refresh();
@@ -42,17 +42,14 @@ export default function SignIn() {
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            登录到 Tiger Console
+            Tiger Console
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            默认账号：admin@tigerkits.com
-          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
-                邮箱
+                账号
               </label>
               <input
                 id="email"
@@ -60,7 +57,7 @@ export default function SignIn() {
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="邮箱地址"
+                placeholder="账号"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
