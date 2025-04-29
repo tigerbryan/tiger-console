@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function Verify() {
+function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [code, setCode] = useState('');
@@ -12,8 +12,8 @@ export default function Verify() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
+    setError('');
 
     try {
       const response = await fetch('/api/auth/verify', {
@@ -33,10 +33,9 @@ export default function Verify() {
         setError(data.error);
       } else {
         router.push('/');
-        router.refresh();
       }
-    } catch (error) {
-      setError('验证过程中发生错误，请稍后重试');
+    } catch (err) {
+      setError('验证失败，请重试');
     } finally {
       setIsLoading(false);
     }
@@ -47,19 +46,24 @@ export default function Verify() {
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            两步验证
+            验证两步认证
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            请输入验证器应用中的 6 位验证码
+            请输入 Google Authenticator 中的验证码
           </p>
         </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
+            <label htmlFor="code" className="sr-only">
+              验证码
+            </label>
             <input
+              id="code"
               type="text"
               required
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="验证码"
+              placeholder="请输入 6 位验证码"
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               pattern="[0-9]{6}"
@@ -84,5 +88,13 @@ export default function Verify() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div>加载中...</div>}>
+      <VerifyContent />
+    </Suspense>
   );
 } 
