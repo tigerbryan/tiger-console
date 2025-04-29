@@ -1,3 +1,12 @@
+// ClientLayout.tsx - 客户端组件
+'use client';
+import { SessionProvider } from 'next-auth/react'
+
+function ClientLayout({ children }: { children: React.ReactNode }) {
+  return <SessionProvider>{children}</SessionProvider>
+}
+
+// layout.tsx - 服务器端组件
 import React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
@@ -10,15 +19,6 @@ export const metadata: Metadata = {
   description: 'Tiger Console Application',
 }
 
-// 客户端组件包装器
-'use client';
-import { SessionProvider } from 'next-auth/react'
-
-function ClientLayout({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>
-}
-
-// 根布局
 export default function RootLayout({
   children,
 }: {
