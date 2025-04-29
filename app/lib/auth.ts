@@ -24,6 +24,6 @@ export const users: User[] = [
     email: "admin@tigerkits.com",
     password: "tiger@2024",
     twoFactorSecret: generateSecret(),
-    twoFactorEnabled: true,
+    twoFactorEnabled: false,
   },
 ]; 
