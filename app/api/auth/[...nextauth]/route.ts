@@ -7,25 +7,27 @@ const handler = NextAuth({
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "邮箱", type: "email" },
+        username: { label: "用户名", type: "text" },
         password: { label: "密码", type: "password" }
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.email || !credentials?.password) {
+          if (!credentials?.username || !credentials?.password) {
             console.log("Missing credentials");
             return null;
           }
           
-          const user = users.find(u => u.email === credentials.email);
-          console.log("Found user:", user?.email);
+          const user = users.find(u => u.username === credentials.username);
+          console.log("Found user:", user?.username);
           
           if (user && user.password === credentials.password) {
             console.log("Login successful");
             return {
               id: user.id,
+              username: user.username,
               name: user.name,
               email: user.email,
+              avatar: user.avatar,
             };
           }
           
@@ -39,7 +41,7 @@ const handler = NextAuth({
     }),
   ],
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth/login",
   },
   session: {
     strategy: "jwt",
@@ -49,12 +51,16 @@ const handler = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.username = user.username;
+        token.avatar = user.avatar;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.username = token.username as string;
+        session.user.avatar = token.avatar as string;
       }
       return session;
     },

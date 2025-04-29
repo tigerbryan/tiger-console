@@ -2,9 +2,11 @@ import { authenticator } from 'otplib';
 
 export interface User {
   id: string;
+  username: string;
   name: string;
-  email: string;
+  email?: string;
   password: string;
+  avatar?: string;
   twoFactorSecret?: string;
   twoFactorEnabled: boolean;
 }
@@ -20,10 +22,12 @@ export function verifyTOTP(token: string, secret: string) {
 export const users: User[] = [
   {
     id: "1",
+    username: "tiger",
     name: "tiger",
     email: "admin@tigerkits.com",
     password: "tiger@2024",
+    avatar: "/avatars/default.png",
     twoFactorSecret: generateSecret(),
-    twoFactorEnabled: true,
+    twoFactorEnabled: false,
   },
 ]; 

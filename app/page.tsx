@@ -3,6 +3,7 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -13,7 +14,7 @@ export default function Home() {
   }
 
   if (!session) {
-    router.push('/auth/signin');
+    router.push('/auth/login');
     return null;
   }
 
@@ -27,12 +28,30 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4">
               <Link 
+                href="/settings/profile" 
+                className="text-gray-700 hover:text-gray-900"
+              >
+                个人设置
+              </Link>
+              <Link 
                 href="/settings/security" 
                 className="text-gray-700 hover:text-gray-900"
               >
                 安全设置
               </Link>
-              <span className="text-gray-500">{session.user?.email}</span>
+              <div className="flex items-center space-x-2">
+                {session.user?.avatar && (
+                  <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                    <Image
+                      src={session.user.avatar}
+                      alt="Avatar"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <span className="text-gray-500">{session.user?.name}</span>
+              </div>
               <button
                 onClick={() => signOut()}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
