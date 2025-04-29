@@ -1,10 +1,7 @@
-'use client';
-
 import React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { SessionProvider } from 'next-auth/react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -13,6 +10,15 @@ export const metadata: Metadata = {
   description: 'Tiger Console Application',
 }
 
+// 客户端组件包装器
+'use client';
+import { SessionProvider } from 'next-auth/react'
+
+function ClientLayout({ children }: { children: React.ReactNode }) {
+  return <SessionProvider>{children}</SessionProvider>
+}
+
+// 根布局
 export default function RootLayout({
   children,
 }: {
@@ -21,9 +27,9 @@ export default function RootLayout({
   return (
     <html lang="zh">
       <body className={inter.className}>
-        <SessionProvider>
+        <ClientLayout>
           {children}
-        </SessionProvider>
+        </ClientLayout>
       </body>
     </html>
   )
