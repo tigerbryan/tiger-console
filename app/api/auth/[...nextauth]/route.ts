@@ -1,47 +1,53 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { users } from "@/app/lib/auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
+import { compare } from "bcryptjs";
 
 const handler = NextAuth({
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "credentials",
       credentials: {
         username: { label: "用户名", type: "text" },
         password: { label: "密码", type: "password" }
       },
       async authorize(credentials) {
-        try {
-          if (!credentials?.username || !credentials?.password) {
-            console.log("Missing credentials");
-            return null;
-          }
-          
-          const user = users.find(u => u.username === credentials.username);
-          console.log("Found user:", user?.username);
-          
-          if (user && user.password === credentials.password) {
-            console.log("Login successful");
-            return {
-              id: user.id,
-              username: user.username,
-              name: user.name,
-              email: user.email,
-              avatar: user.avatar,
-            };
-          }
-          
-          console.log("Invalid credentials");
-          return null;
-        } catch (error) {
-          console.error("Auth error:", error);
-          return null;
+        if (!credentials?.username || !credentials?.password) {
+          throw new Error("用户名和密码不能为空");
         }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            username: credentials.username
+          }
+        });
+
+        if (!user || !user.password) {
+          throw new Error("用户不存在");
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.password);
+
+        if (!isPasswordValid) {
+          throw new Error("密码错误");
+        }
+
+        return {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          image: user.image
+        };
       }
-    }),
+    })
   ],
   pages: {
-    signIn: "/auth/login",
+    signIn: "/login",
+    error: "/login"
   },
   session: {
     strategy: "jwt",
@@ -66,6 +72,7 @@ const handler = NextAuth({
     },
   },
   debug: true,
+  secret: process.env.NEXTAUTH_SECRET
 });
 
 export { handler as GET, handler as POST }; 
