@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import QRCode from 'qrcode';
 
-export default function Setup2FA() {
+function Setup2FAContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [qrCode, setQrCode] = useState('');
@@ -131,5 +131,13 @@ export default function Setup2FA() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function Setup2FAPage() {
+  return (
+    <Suspense fallback={<div>加载中...</div>}>
+      <Setup2FAContent />
+    </Suspense>
   );
 } 

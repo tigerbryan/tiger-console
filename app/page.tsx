@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -24,8 +25,14 @@ export default function Home() {
             <div className="flex items-center">
               <h1 className="text-xl font-bold">Tiger Console</h1>
             </div>
-            <div className="flex items-center">
-              <span className="mr-4">{session.user?.email}</span>
+            <div className="flex items-center space-x-4">
+              <Link 
+                href="/settings/security" 
+                className="text-gray-700 hover:text-gray-900"
+              >
+                安全设置
+              </Link>
+              <span className="text-gray-500">{session.user?.email}</span>
               <button
                 onClick={() => signOut()}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
