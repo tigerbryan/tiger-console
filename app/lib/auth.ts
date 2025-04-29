@@ -1,10 +1,32 @@
-export const users = [
+import { authenticator } from 'otplib';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  twoFactorSecret?: string;
+  twoFactorEnabled: boolean;
+}
+
+// 生成一个新的密钥
+const generateSecret = () => authenticator.generateSecret();
+
+export const users: User[] = [
   {
     id: "1",
     name: "Tiger Admin",
     email: "admin@tigerkits.com",
-    password: "tiger@2024", // 在实际生产环境中应该使用加密的密码
+    password: "tiger@2024",
+    twoFactorSecret: generateSecret(),
+    twoFactorEnabled: true,
   },
-] as const;
+];
 
-export type User = (typeof users)[number]; 
+export const verifyTOTP = (token: string, secret: string) => {
+  try {
+    return authenticator.verify({ token, secret });
+  } catch {
+    return false;
+  }
+}; 
