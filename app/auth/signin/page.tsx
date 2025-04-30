@@ -8,8 +8,10 @@ export default function SignIn() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,14 +22,20 @@ export default function SignIn() {
       const result = await signIn('credentials', {
         username,
         password,
+        code: requires2FA ? code : undefined,
         redirect: false,
       });
 
       if (result?.error) {
-        if (result.error === "用户不存在") {
+        if (result.error === "requires2FA") {
+          setRequires2FA(true);
+          setError('');
+        } else if (result.error === "用户不存在") {
           setError('用户不存在');
         } else if (result.error === "密码错误") {
           setError('密码错误');
+        } else if (result.error === "验证码无效") {
+          setError('验证码无效');
         } else if (result.error === "用户名和密码不能为空") {
           setError('用户名和密码不能为空');
         } else {
@@ -68,7 +76,7 @@ export default function SignIn() {
                 placeholder="账号"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || requires2FA}
               />
             </div>
             <div>
@@ -84,9 +92,27 @@ export default function SignIn() {
                 placeholder="密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || requires2FA}
               />
             </div>
+            {requires2FA && (
+              <div className="mt-2">
+                <label htmlFor="code" className="sr-only">
+                  验证码
+                </label>
+                <input
+                  id="code"
+                  name="code"
+                  type="text"
+                  required
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="请输入验证码"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
           </div>
 
           {error && (
@@ -99,7 +125,7 @@ export default function SignIn() {
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               disabled={isLoading}
             >
-              {isLoading ? '登录中...' : '登录'}
+              {isLoading ? '登录中...' : requires2FA ? '验证' : '登录'}
             </button>
           </div>
         </form>

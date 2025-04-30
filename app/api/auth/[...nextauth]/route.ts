@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { users } from "@/app/lib/auth";
+import { users, verifyTOTP } from "@/app/lib/auth";
 
 const handler = NextAuth({
   providers: [
@@ -8,7 +8,8 @@ const handler = NextAuth({
       name: "credentials",
       credentials: {
         username: { label: "用户名", type: "text" },
-        password: { label: "密码", type: "password" }
+        password: { label: "密码", type: "password" },
+        code: { label: "验证码", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
@@ -23,6 +24,19 @@ const handler = NextAuth({
 
         if (user.password !== credentials.password) {
           throw new Error("密码错误");
+        }
+
+        // 如果启用了两步验证，但没有提供验证码
+        if (user.twoFactorEnabled && !credentials.code) {
+          throw new Error("requires2FA");
+        }
+
+        // 如果启用了两步验证，验证验证码
+        if (user.twoFactorEnabled && credentials.code) {
+          const isValidCode = verifyTOTP(credentials.code, user.twoFactorSecret || "");
+          if (!isValidCode) {
+            throw new Error("验证码无效");
+          }
         }
 
         return {
