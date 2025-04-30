@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import ImageUpload from '@/app/components/ImageUpload';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function ProfileSettings() {
   const { data: session, update } = useSession();
