@@ -1,52 +1,61 @@
 import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { username, password } = await req.json();
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: '用户名和密码不能为空' },
-        { status: 400 }
-      );
-    }
+    const { username, email, password, name } = await request.json();
 
     // 检查用户名是否已存在
     const existingUser = await prisma.user.findUnique({
-      where: { username }
+      where: { username },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: '用户名已存在' },
+        { error: '用户名已被使用' },
         { status: 400 }
       );
     }
 
-    // 创建新用户
-    const hashedPassword = await hash(password, 12);
+    // 检查邮箱是否已存在
+    const existingEmail = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingEmail) {
+      return NextResponse.json(
+        { error: '邮箱已被注册' },
+        { status: 400 }
+      );
+    }
+
+    // 加密密码
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 创建用户
     const user = await prisma.user.create({
       data: {
         username,
+        email,
+        name,
         password: hashedPassword,
-        name: username, // 设置默认名称
-      }
+      },
     });
 
-    return NextResponse.json(
-      { message: '注册成功', userId: user.id },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error('Registration error:', {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
+    return NextResponse.json({
+      message: '注册成功',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+      },
     });
+  } catch (error) {
+    console.error('Registration error:', error);
     return NextResponse.json(
-      { error: `注册失败: ${error.message}` },
+      { error: '注册失败，请稍后重试' },
       { status: 500 }
     );
   }
