@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     }
 
     const { name, email, avatar } = await request.json();
+    console.log('Received update request:', { name, email, avatar });
 
     // 如果提供了邮箱，检查邮箱是否已被使用
     if (email && email !== session.user.email) {
@@ -29,6 +30,10 @@ export async function POST(request: Request) {
     }
 
     try {
+      // 检查数据库连接
+      await prisma.$connect();
+      console.log('Database connection successful');
+
       // 更新用户信息
       const updatedUser = await prisma.user.update({
         where: {
@@ -42,6 +47,8 @@ export async function POST(request: Request) {
         }
       });
 
+      console.log('User updated successfully:', updatedUser);
+
       return NextResponse.json({
         message: '更新成功',
         user: {
@@ -54,14 +61,32 @@ export async function POST(request: Request) {
     } catch (dbError) {
       console.error('Database update error:', dbError);
       if (dbError instanceof Error) {
-        return NextResponse.json({ error: `数据库更新失败: ${dbError.message}` }, { status: 500 });
+        console.error('Error details:', {
+          message: dbError.message,
+          stack: dbError.stack,
+          name: dbError.name
+        });
+        return NextResponse.json({ 
+          error: `数据库更新失败: ${dbError.message}`,
+          details: process.env.NODE_ENV === 'development' ? dbError.stack : undefined
+        }, { status: 500 });
       }
       return NextResponse.json({ error: '数据库更新失败' }, { status: 500 });
+    } finally {
+      await prisma.$disconnect();
     }
   } catch (error) {
     console.error('Profile update error:', error);
     if (error instanceof Error) {
-      return NextResponse.json({ error: `更新失败: ${error.message}` }, { status: 500 });
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      return NextResponse.json({ 
+        error: `更新失败: ${error.message}`,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }, { status: 500 });
     }
     return NextResponse.json({ error: '更新失败，请稍后重试' }, { status: 500 });
   }
