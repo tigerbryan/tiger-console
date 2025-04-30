@@ -30,14 +30,14 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     console.log('完整的 session 数据:', JSON.stringify(session, null, 2));
     
-    if (!session?.user?.id) {
-      console.log('未找到用户 ID，session.user:', session?.user);
+    if (!session?.user?.username) {
+      console.log('未找到用户名，session.user:', session?.user);
       return NextResponse.json({ error: '未登录' }, { status: 401 });
     }
 
     const { name, email, avatar } = await request.json();
     console.log('接收到的更新请求数据:', { name, email, avatar });
-    console.log('当前用户 ID:', session.user.id);
+    console.log('当前用户名:', session.user.username);
 
     // 尝试连接数据库
     const connected = await connectWithRetry();
@@ -52,14 +52,14 @@ export async function POST(request: Request) {
       // 先检查用户是否存在
       const existingUser = await prisma.user.findUnique({
         where: {
-          id: session.user.id
+          username: session.user.username
         }
       });
 
       console.log('数据库中找到的用户:', existingUser);
 
       if (!existingUser) {
-        console.error('在数据库中未找到用户，ID:', session.user.id);
+        console.error('在数据库中未找到用户，username:', session.user.username);
         return NextResponse.json({ error: '用户不存在' }, { status: 404 });
       }
 
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
           where: {
             email,
             NOT: {
-              id: existingUser.id
+              username: existingUser.username
             }
           }
         });
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
       const updatedUser = await prisma.user.update({
         where: {
-          id: existingUser.id
+          username: existingUser.username
         },
         data: {
           name: name || undefined,
