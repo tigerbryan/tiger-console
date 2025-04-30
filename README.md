@@ -1,6 +1,27 @@
 # Tiger Console
 
-Tiger Console 是一个基于 Next.js 构建的现代化 Web 控制台应用。
+A modern web console built with Next.js and PostgreSQL.
+
+## Environment Variables
+
+Required environment variables:
+- `DATABASE_URL`: PostgreSQL connection string
+- `NEXTAUTH_SECRET`: Secret for NextAuth.js
+- `NEXTAUTH_URL`: Application URL
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+```
+
+## Deployment
+
+The application is automatically deployed to Vercel.
 
 ## 功能特性
 
@@ -43,10 +64,6 @@ NEXTAUTH_SECRET=your_nextauth_secret
 ```bash
 npm run dev
 ```
-
-## 部署
-
-项目已配置为可以直接部署到 Vercel。访问 [Tiger Console](https://tiger-console.vercel.app/) 查看线上版本。
 
 ## 环境要求
 
