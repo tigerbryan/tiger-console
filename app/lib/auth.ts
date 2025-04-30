@@ -7,6 +7,7 @@ export interface User {
   email?: string;
   password: string;
   avatar?: string;
+  image?: string;
   twoFactorSecret?: string;
   twoFactorEnabled: boolean;
 }
@@ -27,6 +28,7 @@ export const users: User[] = [
     email: "admin@tigerkits.com",
     password: "tiger@2024",
     avatar: "/avatars/default.png",
+    image: "/avatars/default.png",
     twoFactorSecret: generateSecret(),
     twoFactorEnabled: false,
   },
