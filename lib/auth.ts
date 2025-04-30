@@ -85,18 +85,25 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        console.log('JWT callback - user data:', user);
         token.id = user.id;
         token.username = user.username;
         token.email = user.email;
         token.name = user.name;
         token.avatar = user.avatar;
       }
+      console.log('JWT callback - token:', token);
       return token;
     },
     async session({ session, token }) {
+      console.log('Session callback - token:', token);
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
@@ -104,6 +111,7 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name as string;
         session.user.avatar = token.avatar as string;
       }
+      console.log('Session callback - final session:', session);
       return session;
     },
   },
@@ -112,9 +120,5 @@ export const authOptions: AuthOptions = {
     error: '/auth/login',
   },
   debug: true,
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
   secret: process.env.NEXTAUTH_SECRET,
 }; 
