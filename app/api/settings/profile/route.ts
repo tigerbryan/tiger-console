@@ -4,7 +4,7 @@ import { authOptions } from '@lib/auth';
 import { prisma } from '@lib/prisma';
 
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const RETRY_DELAY = 2000; // 2 seconds
 
 async function connectWithRetry() {
   let retries = 0;
@@ -35,27 +35,30 @@ export async function POST(request: Request) {
     const { name, email, avatar } = await request.json();
     console.log('Received update request:', { name, email, avatar });
 
-    // 如果提供了邮箱，检查邮箱是否已被使用
-    if (email && email !== session.user.email) {
-      const existingUser = await prisma.user.findUnique({
-        where: {
-          email,
-          NOT: {
-            email: session.user.email
-          }
-        }
-      });
-
-      if (existingUser) {
-        return NextResponse.json({ error: '邮箱已被使用' }, { status: 400 });
-      }
+    // 尝试连接数据库，最多重试3次
+    const connected = await connectWithRetry();
+    if (!connected) {
+      return NextResponse.json({ 
+        error: '无法连接到数据库服务器，请稍后重试',
+        details: '数据库连接失败，已重试3次'
+      }, { status: 503 });
     }
 
     try {
-      // 尝试连接数据库，最多重试3次
-      const connected = await connectWithRetry();
-      if (!connected) {
-        throw new Error('无法连接到数据库服务器');
+      // 如果提供了邮箱，检查邮箱是否已被使用
+      if (email && email !== session.user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            email,
+            NOT: {
+              email: session.user.email
+            }
+          }
+        });
+
+        if (existingUser) {
+          return NextResponse.json({ error: '邮箱已被使用' }, { status: 400 });
+        }
       }
 
       // 更新用户信息
@@ -97,7 +100,11 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: '数据库更新失败' }, { status: 500 });
     } finally {
-      await prisma.$disconnect();
+      try {
+        await prisma.$disconnect();
+      } catch (error) {
+        console.error('Error disconnecting from database:', error);
+      }
     }
   } catch (error) {
     console.error('Profile update error:', error);
