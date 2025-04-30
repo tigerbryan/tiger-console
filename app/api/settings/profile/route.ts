@@ -37,6 +37,7 @@ export async function POST(request: Request) {
         data: {
           name: name || undefined,
           email: email || undefined,
+          image: avatar || undefined,
           avatar: avatar || undefined,
         }
       });
@@ -47,15 +48,21 @@ export async function POST(request: Request) {
           id: updatedUser.id,
           name: updatedUser.name,
           email: updatedUser.email,
-          avatar: updatedUser.avatar
+          avatar: updatedUser.avatar || updatedUser.image
         }
       });
     } catch (dbError) {
       console.error('Database update error:', dbError);
+      if (dbError instanceof Error) {
+        return NextResponse.json({ error: `数据库更新失败: ${dbError.message}` }, { status: 500 });
+      }
       return NextResponse.json({ error: '数据库更新失败' }, { status: 500 });
     }
   } catch (error) {
     console.error('Profile update error:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: `更新失败: ${error.message}` }, { status: 500 });
+    }
     return NextResponse.json({ error: '更新失败，请稍后重试' }, { status: 500 });
   }
 } 
