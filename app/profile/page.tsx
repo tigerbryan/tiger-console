@@ -56,7 +56,7 @@ export default function ProfilePage() {
             头像
           </label>
           <ImageUpload
-            currentImage={session?.user?.avatar}
+            currentImage={session?.user?.avatar || undefined}
             onUpload={handleAvatarUpload}
           />
         </div>
