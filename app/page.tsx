@@ -10,7 +10,7 @@ import {
   UsersIcon,
   InboxIcon,
 } from '@heroicons/react/24/outline';
-import { DEFAULT_AVATAR } from '@/lib/constants';
+import { DEFAULT_AVATAR } from '@lib/constants';
 
 export default function Home() {
   const { data: session, status } = useSession();

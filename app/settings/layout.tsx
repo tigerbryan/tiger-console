@@ -15,7 +15,7 @@ import {
   InboxIcon
 } from '@heroicons/react/24/outline';
 import Image from 'next/image';
-import { DEFAULT_AVATAR } from '@/lib/constants';
+import { DEFAULT_AVATAR } from '@lib/constants';
 
 const navigation = [
   {

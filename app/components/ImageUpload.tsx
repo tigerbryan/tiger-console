@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { DEFAULT_AVATAR } from '@/lib/constants';
+import { DEFAULT_AVATAR } from '@lib/constants';
 
 interface ImageUploadProps {
   currentImage?: string;
