@@ -9,7 +9,8 @@ import {
   UsersIcon,
   ServerIcon,
   CogIcon,
-  InboxIcon
+  InboxIcon,
+  HomeIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -81,33 +82,32 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
       {session ? (
         <>
           {/* 顶部导航栏 */}
-          <div className="bg-white shadow">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between h-16">
+          <nav className="bg-white shadow">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="flex h-16 justify-between">
                 <div className="flex">
-                  <div className="flex items-center text-xl font-bold text-gray-900">
-                    Tiger Console
-                  </div>
+                  <Link href="/" className="flex items-center">
+                    <HomeIcon className="h-6 w-6 text-gray-500 hover:text-gray-700" />
+                    <span className="ml-2 text-lg font-semibold text-gray-900">Tiger Console</span>
+                  </Link>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    {session.user?.image && (
-                      <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                        <img
-                          src={session.user.image}
-                          alt="Avatar"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <span className="text-gray-900 font-medium">
-                      {session.user?.name || '管理员'}
-                    </span>
-                  </div>
+                <div className="flex items-center">
+                  {session.user?.avatar ? (
+                    <img
+                      src={session.user.avatar}
+                      alt="Avatar"
+                      className="h-8 w-8 rounded-full"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      <UserIcon className="h-5 w-5 text-gray-500" />
+                    </div>
+                  )}
+                  <span className="ml-2 text-sm text-gray-700">{session.user?.name}</span>
                 </div>
               </div>
             </div>
-          </div>
+          </nav>
 
           <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <div className="flex gap-8">
