@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
+import { prisma } from '@lib/prisma';
 
 // 配置
-const UPLOAD_DIR = '/usr/share/nginx/html/avatars';
-const PUBLIC_URL = 'http://43.100.16.213/avatars';
+const UPLOAD_DIR = join(process.cwd(), 'public/avatars');
+const PUBLIC_URL = '/avatars';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -15,6 +16,7 @@ export async function POST(request: Request) {
     // 1. 验证用户登录
     const session = await getServerSession(authOptions);
     console.log('Session data:', session);
+    console.log('Upload directory:', UPLOAD_DIR);
 
     if (!session?.user?.id) {
       console.log('No user session found');
@@ -41,34 +43,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '文件大小不能超过 5MB' }, { status: 400 });
     }
 
-    // 4. 生成文件名
-    const ext = file.name.split('.').pop() || '';
-    const filename = `${session.user.id}-${Date.now()}.${ext}`;
-    const filepath = join(UPLOAD_DIR, filename);
-
     try {
-      // 5. 保存文件
+      // 4. 确保上传目录存在
+      await mkdir(UPLOAD_DIR, { recursive: true });
+      console.log('Upload directory created/verified');
+
+      // 5. 生成文件名
+      const ext = file.name.split('.').pop() || '';
+      const filename = `${session.user.id}-${Date.now()}.${ext}`;
+      const filepath = join(UPLOAD_DIR, filename);
+      console.log('Target filepath:', filepath);
+
+      // 6. 保存文件
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-
-      // 确保目录存在
-      const fs = require('fs');
-      if (!fs.existsSync(UPLOAD_DIR)) {
-        console.log('Creating upload directory');
-        fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-      }
-
-      // 写入文件
       await writeFile(filepath, buffer);
-      console.log('File saved successfully:', filepath);
+      console.log('File saved successfully');
 
-      // 设置文件权限
-      fs.chmodSync(filepath, '644');
-      fs.chownSync(filepath, 'www-data', 'www-data');
-
-      // 6. 返回访问 URL
+      // 7. 更新用户头像
       const url = `${PUBLIC_URL}/${filename}`;
-      console.log('File URL:', url);
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { 
+          avatar: url,
+          image: url
+        }
+      });
+      console.log('User avatar updated:', url);
 
       return NextResponse.json({
         url,

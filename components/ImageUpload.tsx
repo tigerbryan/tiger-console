@@ -9,7 +9,7 @@ interface ImageUploadProps {
   className?: string;
 }
 
-const DEFAULT_AVATAR = 'http://43.100.16.213/avatars/default.png';
+const DEFAULT_AVATAR = '/avatars/default.png';
 
 export default function ImageUpload({ currentImage, onUpload, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);

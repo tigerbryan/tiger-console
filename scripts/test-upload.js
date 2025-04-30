@@ -17,12 +17,12 @@ async function testUpload() {
       contentType: 'image/gif'
     });
 
-    // 发送请求到 Vercel API
-    const response = await fetch('https://your-vercel-domain.vercel.app/api/upload', {
+    // 发送请求到 API
+    const response = await fetch('http://localhost:3000/api/upload', {
       method: 'POST',
       headers: {
-        // 添加认证信息（如果需要）
-        'Cookie': 'next-auth.session-token=your-session-token'
+        // 添加认证信息（需要先登录获取）
+        'Cookie': 'next-auth.session-token=你的会话token'
       },
       body: form
     });
