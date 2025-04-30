@@ -10,6 +10,7 @@ import {
   UsersIcon,
   InboxIcon,
 } from '@heroicons/react/24/outline';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -27,28 +28,28 @@ export default function Home() {
   const quickLinks = [
     {
       name: '个人资料',
-      href: '/profile',
+      href: '/settings/profile',
       icon: UserIcon,
       description: '查看和更新您的个人信息',
       color: 'bg-blue-500',
     },
     {
       name: 'Jellyfin',
-      href: '/services',
+      href: '/settings/services',
       icon: ServerIcon,
       description: '管理您的媒体服务',
       color: 'bg-purple-500',
     },
     {
       name: '用户管理',
-      href: '/users',
+      href: '/settings/users',
       icon: UsersIcon,
       description: '管理系统用户',
       color: 'bg-green-500',
     },
     {
       name: '邀请管理',
-      href: '/invites',
+      href: '/settings/invites',
       icon: InboxIcon,
       description: '创建和管理邀请码',
       color: 'bg-yellow-500',
@@ -77,16 +78,14 @@ export default function Home() {
                 安全设置
               </Link>
               <div className="flex items-center space-x-2">
-                {session.user?.avatar && (
-                  <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                    <Image
-                      src={session.user.avatar}
-                      alt="Avatar"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
+                <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                  <Image
+                    src={session.user?.avatar || DEFAULT_AVATAR}
+                    alt="Avatar"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <span className="text-gray-500">{session.user?.name}</span>
               </div>
               <button

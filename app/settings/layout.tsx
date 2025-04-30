@@ -14,6 +14,8 @@ import {
   CogIcon,
   InboxIcon
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 const navigation = [
   {
@@ -95,15 +97,14 @@ export default function SettingsLayout({
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                {session.user?.avatar && (
-                  <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                    <img
-                      src={session.user.avatar}
-                      alt="Avatar"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
+                <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                  <Image
+                    src={session.user?.avatar || DEFAULT_AVATAR}
+                    alt="Avatar"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <span className="text-gray-900 font-medium">
                   {session.user?.name || '管理员'}
                 </span>

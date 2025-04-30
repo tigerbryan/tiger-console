@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import ImageUpload from '@/app/components/ImageUpload';
 
 export default function ProfileSettings() {
   const { data: session, update } = useSession();
@@ -81,38 +81,18 @@ export default function ProfileSettings() {
 
       <div className="px-4 py-5 sm:p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 头像预览和上传 */}
+          {/* 头像上传组件 */}
           <div>
             <label className="block text-sm font-medium text-gray-700">头像</label>
-            <div className="mt-1 flex items-center space-x-5">
-              <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gray-100">
-                {formData.avatar ? (
-                  <Image
-                    src={formData.avatar}
-                    alt="Avatar"
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <span className="text-gray-400">无头像</span>
-                  </div>
-                )}
-              </div>
-              <div>
-                <input
-                  type="text"
-                  id="avatar"
-                  name="avatar"
-                  value={formData.avatar}
-                  onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                  placeholder="输入头像 URL"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  支持 JPEG、PNG、GIF 格式的图片 URL
-                </p>
-              </div>
+            <div className="mt-1">
+              <ImageUpload
+                currentImage={formData.avatar}
+                onUpload={(url) => setFormData({ ...formData, avatar: url })}
+                className="w-full"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                支持 JPEG、PNG、GIF 格式，文件大小不超过 5MB
+              </p>
             </div>
           </div>
 
@@ -127,8 +107,7 @@ export default function ProfileSettings() {
                 id="username"
                 name="username"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm bg-gray-50"
                 disabled
               />
             </div>
