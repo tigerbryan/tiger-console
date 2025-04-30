@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { users, verifyTOTP } from "@/app/lib/auth";
+import { users, verifyTOTP } from "@lib/auth";
 
 const handler = NextAuth({
   providers: [

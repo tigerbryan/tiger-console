@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { users, verifyTOTP } from '@/app/lib/auth';
+import { users, verifyTOTP } from '@lib/auth';
 
 export async function POST(request: Request) {
   try {

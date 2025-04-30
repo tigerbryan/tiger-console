@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authenticator } from 'otplib';
-import { users } from '@/app/lib/auth';
+import { users } from '@lib/auth';
 
 export async function POST(request: Request) {
   try {

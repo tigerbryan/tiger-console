@@ -3,6 +3,38 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
+import { authenticator } from 'otplib';
+
+export interface User {
+  id: string;
+  username: string;
+  name: string | null;
+  email: string | null;
+  password: string;
+  avatar?: string | null;
+  image?: string | null;
+  twoFactorSecret?: string;
+  twoFactorEnabled: boolean;
+}
+
+// 临时用户数据，后续会迁移到数据库
+export const users: User[] = [
+  {
+    id: "1",
+    username: "tiger",
+    name: "tiger",
+    email: "admin@tigerkits.com",
+    password: "tiger@2024",
+    avatar: "/avatars/default.png",
+    image: "/avatars/default.png",
+    twoFactorSecret: authenticator.generateSecret(),
+    twoFactorEnabled: false,
+  }
+];
+
+export function verifyTOTP(token: string, secret: string): boolean {
+  return authenticator.verify({ token, secret });
+}
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
