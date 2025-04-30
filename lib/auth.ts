@@ -66,24 +66,15 @@ export const authOptions: AuthOptions = {
         });
 
         if (!user || !user.password) {
-          console.error('用户不存在:', credentials.username);
           throw new Error('用户不存在');
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
-          console.error('密码错误:', credentials.username);
           throw new Error('密码错误');
         }
 
-        console.log('用户登录成功:', {
-          id: user.id,
-          username: user.username,
-          email: user.email
-        });
-
-        // 返回完整的用户信息
         return {
           id: user.id,
           username: user.username,
@@ -95,9 +86,8 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
-        console.log('JWT 回调 - 用户数据:', user);
         token.id = user.id;
         token.username = user.username;
         token.email = user.email;
@@ -107,7 +97,6 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log('Session 回调 - token 数据:', token);
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
@@ -115,7 +104,6 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name as string;
         session.user.avatar = token.avatar as string;
       }
-      console.log('返回的 session 数据:', session);
       return session;
     },
   },

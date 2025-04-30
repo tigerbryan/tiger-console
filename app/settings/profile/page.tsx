@@ -20,6 +20,7 @@ export default function ProfileSettings() {
 
   useEffect(() => {
     if (session?.user) {
+      console.log('Session user data:', session.user);
       setFormData({
         name: session.user.name || '',
         email: session.user.email || '',
@@ -36,6 +37,7 @@ export default function ProfileSettings() {
     setSuccess('');
 
     try {
+      console.log('Submitting form data:', formData);
       const response = await fetch('/api/settings/profile', {
         method: 'POST',
         headers: {
@@ -45,9 +47,13 @@ export default function ProfileSettings() {
       });
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (data.error) {
         setError(data.error);
+        if (data.details) {
+          console.error('Error details:', data.details);
+        }
       } else {
         setSuccess('个人资料已更新');
         await update({
@@ -60,6 +66,7 @@ export default function ProfileSettings() {
         router.refresh();
       }
     } catch (err) {
+      console.error('Update error:', err);
       setError('更新失败，请稍后重试');
     } finally {
       setIsLoading(false);
