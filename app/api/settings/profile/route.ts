@@ -6,66 +6,78 @@ import { prisma } from '@lib/prisma';
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    console.log('=== 开始处理个人资料更新请求 ===');
-    console.log('Session 数据:', JSON.stringify(session, null, 2));
+    console.log('Session data:', JSON.stringify(session, null, 2));
     
-    if (!session?.user?.username) {
-      console.log('未找到用户名，session.user:', session?.user);
+    if (!session?.user?.id) {
+      console.log('No user session:', session?.user);
       return NextResponse.json({ error: '未登录' }, { status: 401 });
     }
 
     const { name, email, avatar } = await request.json();
-    console.log('接收到的更新数据:', { name, email, avatar });
-    console.log('当前用户名:', session.user.username);
+    console.log('Update data:', { name, email, avatar });
 
     try {
       // 先检查用户是否存在
       const existingUser = await prisma.user.findUnique({
-        where: { username: session.user.username }
+        where: {
+          id: session.user.id
+        }
       });
 
-      console.log('数据库查询结果:', existingUser);
+      console.log('Found user:', existingUser);
 
       if (!existingUser) {
-        console.log('在数据库中未找到用户:', {
-          searchedUsername: session.user.username,
-          allFields: existingUser
-        });
+        console.log('User not found with ID:', session.user.id);
         
-        // 查询所有用户用于调试
-        const allUsers = await prisma.user.findMany({
-          select: {
-            username: true,
-            email: true
+        // 尝试通过用户名查找
+        const userByUsername = await prisma.user.findUnique({
+          where: {
+            username: session.user.username
           }
         });
-        console.log('数据库中的所有用户:', allUsers);
-        
-        return NextResponse.json({ 
-          error: '用户不存在',
-          debug: {
-            searchedUsername: session.user.username,
-            sessionUser: session.user,
-            databaseUsers: allUsers
-          }
-        }, { status: 404 });
+
+        if (userByUsername) {
+          console.log('Found user by username:', userByUsername);
+          // 更新 session 中的用户 ID
+          session.user.id = userByUsername.id;
+        } else {
+          return NextResponse.json({ error: '用户不存在' }, { status: 404 });
+        }
       }
 
-      // 准备更新数据
+      // 如果提供了新邮箱，检查是否已被使用
+      if (email && email !== existingUser?.email) {
+        const emailUser = await prisma.user.findUnique({
+          where: {
+            email,
+            NOT: {
+              id: session.user.id
+            }
+          }
+        });
+
+        if (emailUser) {
+          return NextResponse.json({ error: '邮箱已被使用' }, { status: 400 });
+        }
+      }
+
+      // 更新用户信息
       const updateData = {
-        name: name || undefined,
-        email: email || undefined,
-        avatar: avatar || undefined,
-        image: avatar || undefined,
+        ...(name && { name }),
+        ...(email && { email }),
+        ...(avatar && { avatar, image: avatar })
       };
-      console.log('准备更新的数据:', updateData);
+
+      console.log('Updating user with data:', updateData);
 
       const updatedUser = await prisma.user.update({
-        where: { username: session.user.username },
+        where: {
+          id: session.user.id
+        },
         data: updateData
       });
 
-      console.log('更新成功，更新后的用户数据:', updatedUser);
+      console.log('User updated:', updatedUser);
 
       return NextResponse.json({
         message: '更新成功',
@@ -78,27 +90,14 @@ export async function POST(request: Request) {
         }
       });
     } catch (error) {
-      console.error('数据库操作错误:', error);
-      if (error instanceof Error) {
-        console.error('错误详情:', {
-          message: error.message,
-          stack: error.stack
-        });
-      }
+      console.error('Database error:', error);
       return NextResponse.json({ 
         error: '更新失败',
-        details: error instanceof Error ? error.message : '未知错误',
-        debug: {
-          sessionUser: session.user,
-          errorType: error instanceof Error ? error.constructor.name : typeof error
-        }
+        details: error instanceof Error ? error.message : '未知错误'
       }, { status: 500 });
     }
   } catch (error) {
-    console.error('API 错误:', error);
-    if (error instanceof Error) {
-      console.error('错误堆栈:', error.stack);
-    }
+    console.error('API error:', error);
     return NextResponse.json({ 
       error: '服务器错误',
       details: error instanceof Error ? error.message : '未知错误'
