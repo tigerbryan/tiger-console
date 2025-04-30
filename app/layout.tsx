@@ -1,28 +1,179 @@
-import React from 'react'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import ClientLayout from './components/ClientLayout'
+'use client';
 
-const inter = Inter({ subsets: ['latin'] })
+import { useSession } from 'next-auth/react';
+import {
+  UserIcon,
+  ShieldCheckIcon,
+  KeyIcon,
+  BellIcon,
+  UsersIcon,
+  ServerIcon,
+  CogIcon,
+  InboxIcon
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Tiger Console',
-  description: 'Tiger Console Application',
-}
+const navigation = [
+  {
+    name: '个人资料',
+    href: '/profile',
+    icon: UserIcon,
+    description: '更新您的个人信息和头像'
+  },
+  {
+    name: '安全设置',
+    href: '/security',
+    icon: ShieldCheckIcon,
+    description: '管理密码和两步验证'
+  },
+  {
+    name: '用户管理',
+    href: '/users',
+    icon: UsersIcon,
+    description: '管理用户和访问权限'
+  },
+  {
+    name: '服务管理',
+    href: '/services',
+    icon: ServerIcon,
+    description: '管理 Jellyfin 等服务'
+  },
+  {
+    name: '邀请管理',
+    href: '/invites',
+    icon: InboxIcon,
+    description: '管理邀请码和用户注册'
+  },
+  {
+    name: '系统设置',
+    href: '/system',
+    icon: CogIcon,
+    description: '管理系统配置和服务器设置'
+  },
+  {
+    name: '访问令牌',
+    href: '/tokens',
+    icon: KeyIcon,
+    description: '管理 API 访问令牌'
+  },
+  {
+    name: '通知设置',
+    href: '/notifications',
+    icon: BellIcon,
+    description: '配置通知偏好设置'
+  }
+];
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
+  const { data: session } = useSession();
+  const pathname = usePathname();
+
+  // 如果是登录或注册页面，不显示导航
+  if (pathname === '/login' || pathname === '/register') {
+    return (
+      <html lang="zh">
+        <body>{children}</body>
+      </html>
+    );
+  }
+
   return (
     <html lang="zh">
-      <body className={inter.className}>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+      <body>
+        <div className="min-h-screen bg-gray-50">
+          {session ? (
+            <>
+              {/* 顶部导航栏 */}
+              <div className="bg-white shadow">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between h-16">
+                    <div className="flex">
+                      <div className="flex items-center text-xl font-bold text-gray-900">
+                        Tiger Console
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        {session.user?.image && (
+                          <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                            <img
+                              src={session.user.image}
+                              alt="Avatar"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <span className="text-gray-900 font-medium">
+                          {session.user?.name || '管理员'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div className="flex gap-8">
+                  {/* 侧边栏 */}
+                  <div className="w-72 flex-shrink-0">
+                    <nav className="space-y-1">
+                      {navigation.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            className={`
+                              group flex items-center px-3 py-2 text-sm font-medium rounded-md
+                              ${isActive
+                                ? 'bg-gray-100 text-gray-900'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                              }
+                            `}
+                          >
+                            <item.icon
+                              className={`
+                                mr-3 h-6 w-6
+                                ${isActive
+                                  ? 'text-gray-500'
+                                  : 'text-gray-400 group-hover:text-gray-500'
+                                }
+                              `}
+                            />
+                            <div>
+                              <div className={isActive ? 'text-gray-900' : 'text-gray-600'}>
+                                {item.name}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {item.description}
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                  </div>
+
+                  {/* 主内容区 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-white shadow rounded-lg">
+                      {children}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            children
+          )}
+        </div>
       </body>
     </html>
-  )
+  );
 } 
