@@ -83,6 +83,7 @@ export const authOptions: AuthOptions = {
           email: user.email
         });
 
+        // 返回完整的用户信息
         return {
           id: user.id,
           username: user.username,
@@ -93,12 +94,8 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         console.log('JWT 回调 - 用户数据:', user);
         token.id = user.id;
@@ -110,14 +107,15 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      console.log('Session 回调 - token 数据:', token);
       if (session.user) {
-        console.log('Session 回调 - token 数据:', token);
         session.user.id = token.id as string;
         session.user.username = token.username as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.avatar = token.avatar as string;
       }
+      console.log('返回的 session 数据:', session);
       return session;
     },
   },
@@ -125,6 +123,10 @@ export const authOptions: AuthOptions = {
     signIn: '/auth/login',
     error: '/auth/login',
   },
-  debug: true, // 启用调试模式
+  debug: true,
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   secret: process.env.NEXTAUTH_SECRET,
 }; 

@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     try {
       // 先检查用户是否存在
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await prisma.user.findFirst({
         where: {
           username: session.user.username
         }
@@ -59,13 +59,23 @@ export async function POST(request: Request) {
       console.log('数据库中找到的用户:', existingUser);
 
       if (!existingUser) {
+        // 尝试查找所有用户，用于调试
+        const allUsers = await prisma.user.findMany({
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
+        });
+        console.log('数据库中的所有用户:', allUsers);
+        
         console.error('在数据库中未找到用户，username:', session.user.username);
         return NextResponse.json({ error: '用户不存在' }, { status: 404 });
       }
 
       // 如果提供了新邮箱，检查邮箱是否已被使用
       if (email && email !== existingUser.email) {
-        const emailUser = await prisma.user.findUnique({
+        const emailUser = await prisma.user.findFirst({
           where: {
             email,
             NOT: {
@@ -80,11 +90,15 @@ export async function POST(request: Request) {
       }
 
       // 更新用户信息
-      console.log('准备更新用户，更新数据:', {
-        name: name || undefined,
-        email: email || undefined,
-        image: avatar || undefined,
-        avatar: avatar || undefined,
+      console.log('准备更新用户，用户信息:', {
+        id: existingUser.id,
+        username: existingUser.username,
+        currentEmail: existingUser.email,
+        newEmail: email,
+        currentName: existingUser.name,
+        newName: name,
+        currentAvatar: existingUser.avatar,
+        newAvatar: avatar
       });
 
       const updatedUser = await prisma.user.update({
@@ -113,6 +127,12 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       console.error('数据库更新错误:', error);
+      if (error instanceof Error) {
+        console.error('错误详情:', {
+          message: error.message,
+          stack: error.stack
+        });
+      }
       return NextResponse.json({ 
         error: '更新失败，请稍后重试',
         details: error instanceof Error ? error.message : '未知错误'
@@ -122,6 +142,12 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('Profile update error:', error);
+    if (error instanceof Error) {
+      console.error('错误详情:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
     return NextResponse.json({ 
       error: '更新失败，请稍后重试',
       details: error instanceof Error ? error.message : '未知错误'
