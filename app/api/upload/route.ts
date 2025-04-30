@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
-import { ossClient, generateOssPath, getPublicUrl } from '@lib/oss';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
+
+// 上传目录配置
+const UPLOAD_DIR = '/usr/share/nginx/html/avatars';
+const PUBLIC_URL = 'http://43.100.16.213/avatars'; // 使用服务器 IP
 
 export async function POST(request: Request) {
   try {
@@ -28,37 +33,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '文件大小不能超过 5MB' }, { status: 400 });
     }
 
-    // 生成 OSS 文件路径
-    const ext = file.name.split('.').pop() || '';
-    const ossPath = generateOssPath(`${session.user.username}.${ext}`);
-
     try {
+      // 生成文件名
+      const ext = file.name.split('.').pop() || '';
+      const filename = `${session.user.username}-${Date.now()}.${ext}`;
+      const filepath = join(UPLOAD_DIR, filename);
+
       // 将文件转换为 Buffer
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      // 上传到 OSS
-      const result = await ossClient.put(ossPath, buffer, {
-        headers: {
-          'Content-Type': file.type,
-          'Cache-Control': 'max-age=31536000', // 缓存一年
-        },
-      });
+      // 写入文件
+      await writeFile(filepath, buffer);
+      console.log('文件已保存:', filepath);
 
-      console.log('文件上传成功:', result);
-
-      // 获取文件的公共访问 URL
-      const url = getPublicUrl(ossPath);
+      // 生成访问 URL
+      const url = `${PUBLIC_URL}/${filename}`;
 
       return NextResponse.json({
         url,
         success: true
       });
-    } catch (ossError) {
-      console.error('OSS 上传错误:', ossError);
+    } catch (fsError) {
+      console.error('文件系统错误:', fsError);
       return NextResponse.json({ 
-        error: '文件上传失败',
-        details: ossError instanceof Error ? ossError.message : '未知错误'
+        error: '文件保存失败',
+        details: fsError instanceof Error ? fsError.message : '未知错误'
       }, { status: 500 });
     }
   } catch (error) {
