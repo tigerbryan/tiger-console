@@ -1,44 +1,54 @@
+import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@lib/auth';
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession();
-    if (!session) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.username) {
       return NextResponse.json({ error: '未登录' }, { status: 401 });
     }
 
-    const data = await request.formData();
-    const file: File | null = data.get('file') as unknown as File;
-
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    
     if (!file) {
-      return NextResponse.json({ error: '没有上传文件' }, { status: 400 });
+      return NextResponse.json({ error: '未找到文件' }, { status: 400 });
     }
 
     // 验证文件类型
     if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: '只能上传图片文件' }, { status: 400 });
+      return NextResponse.json({ error: '只支持图片文件' }, { status: 400 });
     }
 
-    // 限制文件大小（例如：5MB）
+    // 验证文件大小（5MB）
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json({ error: '文件大小不能超过 5MB' }, { status: 400 });
     }
 
-    // 将文件转换为 Base64
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
+    // 生成文件名
+    const ext = file.type.split('/')[1];
+    const filename = `${session.user.username}-${Date.now()}.${ext}`;
 
-    return NextResponse.json({ 
-      success: true,
-      url: base64
+    // 上传到 Vercel Blob Storage
+    const blob = await put(filename, file, {
+      access: 'public',
+      addRandomSuffix: true,
+    });
+
+    console.log('文件上传成功:', blob);
+
+    return NextResponse.json({
+      url: blob.url,
+      success: true
     });
   } catch (error) {
-    console.error('Upload error:', error);
-    return NextResponse.json(
-      { error: '上传失败，请稍后重试' },
-      { status: 500 }
-    );
+    console.error('文件上传错误:', error);
+    return NextResponse.json({ 
+      error: '文件上传失败',
+      details: error instanceof Error ? error.message : '未知错误'
+    }, { status: 500 });
   }
 } 
