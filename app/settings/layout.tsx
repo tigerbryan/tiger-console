@@ -3,7 +3,17 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { ArrowLeftIcon, UserIcon, ShieldCheckIcon, KeyIcon, BellIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  UserIcon,
+  ShieldCheckIcon,
+  KeyIcon,
+  BellIcon,
+  UsersIcon,
+  ServerIcon,
+  CogIcon,
+  InboxIcon
+} from '@heroicons/react/24/outline';
 
 const navigation = [
   {
@@ -17,6 +27,30 @@ const navigation = [
     href: '/settings/security',
     icon: ShieldCheckIcon,
     description: '管理密码和两步验证'
+  },
+  {
+    name: '用户管理',
+    href: '/settings/users',
+    icon: UsersIcon,
+    description: '管理用户和访问权限'
+  },
+  {
+    name: '服务管理',
+    href: '/settings/services',
+    icon: ServerIcon,
+    description: '管理 Jellyfin 等服务'
+  },
+  {
+    name: '邀请管理',
+    href: '/settings/invites',
+    icon: InboxIcon,
+    description: '管理邀请码和用户注册'
+  },
+  {
+    name: '系统设置',
+    href: '/settings/system',
+    icon: CogIcon,
+    description: '管理系统配置和服务器设置'
   },
   {
     name: '访问令牌',
@@ -59,8 +93,21 @@ export default function SettingsLayout({
                 返回主页
               </Link>
             </div>
-            <div className="flex items-center">
-              <span className="text-gray-900 font-medium">{session.user?.name || '设置'}</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                {session.user?.avatar && (
+                  <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                    <img
+                      src={session.user.avatar}
+                      alt="Avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+                <span className="text-gray-900 font-medium">
+                  {session.user?.name || '管理员'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -69,7 +116,7 @@ export default function SettingsLayout({
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="flex gap-8">
           {/* 侧边栏 */}
-          <div className="w-64 flex-shrink-0">
+          <div className="w-72 flex-shrink-0">
             <nav className="space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
