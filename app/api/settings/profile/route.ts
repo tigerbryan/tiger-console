@@ -28,7 +28,7 @@ async function connectWithRetry() {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!session?.user?.username) {
       return NextResponse.json({ error: '未登录' }, { status: 401 });
     }
 
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
           where: {
             email,
             NOT: {
-              email: session.user.email
+              username: session.user.username
             }
           }
         });
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       // 更新用户信息
       const updatedUser = await prisma.user.update({
         where: {
-          email: session.user.email
+          username: session.user.username
         },
         data: {
           name: name || undefined,
