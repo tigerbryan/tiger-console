@@ -1,11 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
-import { compare } from "bcryptjs";
+import { users } from "@/app/lib/auth";
 
 const handler = NextAuth({
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -18,19 +15,13 @@ const handler = NextAuth({
           throw new Error("用户名和密码不能为空");
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            username: credentials.username
-          }
-        });
+        const user = users.find(u => u.username === credentials.username);
 
-        if (!user || !user.password) {
+        if (!user) {
           throw new Error("用户不存在");
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
+        if (user.password !== credentials.password) {
           throw new Error("密码错误");
         }
 
