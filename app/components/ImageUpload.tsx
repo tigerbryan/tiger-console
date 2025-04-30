@@ -35,13 +35,6 @@ export default function ImageUpload({ currentImage, onUpload, className = '' }: 
       setIsUploading(true);
       setError('');
 
-      // 创建预览
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
       // 上传文件
       const formData = new FormData();
       formData.append('file', file);
@@ -57,6 +50,8 @@ export default function ImageUpload({ currentImage, onUpload, className = '' }: 
         throw new Error(data.error || '上传失败');
       }
 
+      // 设置预览和更新头像
+      setPreview(data.url);
       onUpload(data.url);
     } catch (err: any) {
       setError(err.message);
@@ -77,12 +72,13 @@ export default function ImageUpload({ currentImage, onUpload, className = '' }: 
         className="relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
       >
         {preview ? (
-          <Image
-            src={preview}
-            alt="Avatar"
-            fill
-            className="object-cover rounded-lg"
-          />
+          <div className="relative w-full h-full">
+            <img
+              src={preview}
+              alt="Avatar"
+              className="object-cover rounded-lg w-full h-full"
+            />
+          </div>
         ) : (
           <div className="flex items-center justify-center h-full">
             <svg

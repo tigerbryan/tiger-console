@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 import { getServerSession } from 'next-auth';
 
 export async function POST(request: Request) {
@@ -27,30 +25,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '文件大小不能超过 5MB' }, { status: 400 });
     }
 
+    // 将文件转换为 Base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // 生成唯一的文件名
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = uniqueSuffix + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '');
-    const uploadDir = join(process.cwd(), 'public', 'uploads');
-    const filepath = join(uploadDir, filename);
-
-    // 确保上传目录存在
-    const fs = require('fs');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // 保存文件
-    await writeFile(filepath, buffer);
-
-    // 返回文件的 URL
-    const fileUrl = `/uploads/${filename}`;
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`;
 
     return NextResponse.json({ 
       success: true,
-      url: fileUrl
+      url: base64
     });
   } catch (error) {
     console.error('Upload error:', error);
