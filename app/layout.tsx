@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Providers } from './providers';
 import './globals.css';
 
 const navigation = [
@@ -66,113 +67,117 @@ const navigation = [
   }
 ];
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
   // 如果是登录或注册页面，不显示导航
   if (pathname === '/login' || pathname === '/register') {
-    return (
-      <html lang="zh">
-        <body>{children}</body>
-      </html>
-    );
+    return children;
   }
 
   return (
+    <div className="min-h-screen bg-gray-50">
+      {session ? (
+        <>
+          {/* 顶部导航栏 */}
+          <div className="bg-white shadow">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between h-16">
+                <div className="flex">
+                  <div className="flex items-center text-xl font-bold text-gray-900">
+                    Tiger Console
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    {session.user?.image && (
+                      <div className="relative h-8 w-8 rounded-full overflow-hidden">
+                        <img
+                          src={session.user.image}
+                          alt="Avatar"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <span className="text-gray-900 font-medium">
+                      {session.user?.name || '管理员'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <div className="flex gap-8">
+              {/* 侧边栏 */}
+              <div className="w-72 flex-shrink-0">
+                <nav className="space-y-1">
+                  {navigation.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`
+                          group flex items-center px-3 py-2 text-sm font-medium rounded-md
+                          ${isActive
+                            ? 'bg-gray-100 text-gray-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          }
+                        `}
+                      >
+                        <item.icon
+                          className={`
+                            mr-3 h-6 w-6
+                            ${isActive
+                              ? 'text-gray-500'
+                              : 'text-gray-400 group-hover:text-gray-500'
+                            }
+                          `}
+                        />
+                        <div>
+                          <div className={isActive ? 'text-gray-900' : 'text-gray-600'}>
+                            {item.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {item.description}
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* 主内容区 */}
+              <div className="flex-1 min-w-0">
+                <div className="bg-white shadow rounded-lg">
+                  {children}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
     <html lang="zh">
       <body>
-        <div className="min-h-screen bg-gray-50">
-          {session ? (
-            <>
-              {/* 顶部导航栏 */}
-              <div className="bg-white shadow">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="flex justify-between h-16">
-                    <div className="flex">
-                      <div className="flex items-center text-xl font-bold text-gray-900">
-                        Tiger Console
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        {session.user?.image && (
-                          <div className="relative h-8 w-8 rounded-full overflow-hidden">
-                            <img
-                              src={session.user.image}
-                              alt="Avatar"
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <span className="text-gray-900 font-medium">
-                          {session.user?.name || '管理员'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                <div className="flex gap-8">
-                  {/* 侧边栏 */}
-                  <div className="w-72 flex-shrink-0">
-                    <nav className="space-y-1">
-                      {navigation.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                          <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`
-                              group flex items-center px-3 py-2 text-sm font-medium rounded-md
-                              ${isActive
-                                ? 'bg-gray-100 text-gray-900'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                              }
-                            `}
-                          >
-                            <item.icon
-                              className={`
-                                mr-3 h-6 w-6
-                                ${isActive
-                                  ? 'text-gray-500'
-                                  : 'text-gray-400 group-hover:text-gray-500'
-                                }
-                              `}
-                            />
-                            <div>
-                              <div className={isActive ? 'text-gray-900' : 'text-gray-600'}>
-                                {item.name}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {item.description}
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </nav>
-                  </div>
-
-                  {/* 主内容区 */}
-                  <div className="flex-1 min-w-0">
-                    <div className="bg-white shadow rounded-lg">
-                      {children}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            children
-          )}
-        </div>
+        <Providers>
+          <RootLayoutContent>{children}</RootLayoutContent>
+        </Providers>
       </body>
     </html>
   );
