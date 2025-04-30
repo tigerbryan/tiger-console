@@ -9,6 +9,8 @@ interface ImageUploadProps {
   className?: string;
 }
 
+const DEFAULT_AVATAR = 'http://43.100.16.213/avatars/default.png';
+
 export default function ImageUpload({ currentImage, onUpload, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
@@ -72,7 +74,7 @@ export default function ImageUpload({ currentImage, onUpload, className }: Image
   };
 
   const handleReset = () => {
-    onUpload('/avatars/default.png');
+    onUpload(DEFAULT_AVATAR);
     setError('');
   };
 
@@ -81,7 +83,7 @@ export default function ImageUpload({ currentImage, onUpload, className }: Image
       <div className="flex items-center space-x-4">
         <div className="relative w-20 h-20">
           <Image
-            src={currentImage || '/avatars/default.png'}
+            src={currentImage || DEFAULT_AVATAR}
             alt="Avatar"
             className="rounded-full object-cover"
             fill
