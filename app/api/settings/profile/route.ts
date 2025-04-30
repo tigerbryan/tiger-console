@@ -3,6 +3,28 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
 import { prisma } from '@lib/prisma';
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+async function connectWithRetry() {
+  let retries = 0;
+  while (retries < MAX_RETRIES) {
+    try {
+      await prisma.$connect();
+      console.log('Database connection successful');
+      return true;
+    } catch (error) {
+      console.error(`Connection attempt ${retries + 1} failed:`, error);
+      retries++;
+      if (retries < MAX_RETRIES) {
+        console.log(`Retrying in ${RETRY_DELAY}ms...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      }
+    }
+  }
+  return false;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,9 +52,11 @@ export async function POST(request: Request) {
     }
 
     try {
-      // 检查数据库连接
-      await prisma.$connect();
-      console.log('Database connection successful');
+      // 尝试连接数据库，最多重试3次
+      const connected = await connectWithRetry();
+      if (!connected) {
+        throw new Error('无法连接到数据库服务器');
+      }
 
       // 更新用户信息
       const updatedUser = await prisma.user.update({
