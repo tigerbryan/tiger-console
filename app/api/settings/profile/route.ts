@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { authOptions } from '@lib/auth';
+import { prisma } from '@lib/prisma';
 
 export async function POST(request: Request) {
   try {
@@ -28,29 +28,34 @@ export async function POST(request: Request) {
       }
     }
 
-    // 更新用户信息
-    const updatedUser = await prisma.user.update({
-      where: {
-        email: session.user.email
-      },
-      data: {
-        name: name || undefined,
-        email: email || undefined,
-        avatar: avatar || undefined,
-      }
-    });
+    try {
+      // 更新用户信息
+      const updatedUser = await prisma.user.update({
+        where: {
+          email: session.user.email
+        },
+        data: {
+          name: name || undefined,
+          email: email || undefined,
+          avatar: avatar || undefined,
+        }
+      });
 
-    return NextResponse.json({
-      message: '更新成功',
-      user: {
-        id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        avatar: updatedUser.avatar
-      }
-    });
+      return NextResponse.json({
+        message: '更新成功',
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          avatar: updatedUser.avatar
+        }
+      });
+    } catch (dbError) {
+      console.error('Database update error:', dbError);
+      return NextResponse.json({ error: '数据库更新失败' }, { status: 500 });
+    }
   } catch (error) {
     console.error('Profile update error:', error);
-    return NextResponse.json({ error: '更新失败' }, { status: 500 });
+    return NextResponse.json({ error: '更新失败，请稍后重试' }, { status: 500 });
   }
 } 
