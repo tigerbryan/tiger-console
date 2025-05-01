@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,19 +28,25 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        if (result.error === "requires2FA") {
-          setRequires2FA(true);
-          setError('');
-        } else if (result.error === "用户不存在") {
-          setError('用户不存在');
-        } else if (result.error === "密码错误") {
-          setError('密码错误');
-        } else if (result.error === "验证码无效") {
-          setError('验证码无效');
-        } else if (result.error === "用户名和密码不能为空") {
-          setError('用户名和密码不能为空');
-        } else {
-          setError('登录失败');
+        switch (result.error) {
+          case 'requires2FA':
+            setRequires2FA(true);
+            setError('');
+            break;
+          case '用户不存在':
+            setError('用户不存在');
+            break;
+          case '密码错误':
+            setError('密码错误');
+            break;
+          case '验证码无效':
+            setError('验证码无效');
+            break;
+          case '用户名和密码不能为空':
+            setError('用户名和密码不能为空');
+            break;
+          default:
+            setError('登录失败，请稍后重试');
         }
       } else {
         router.push('/');
@@ -60,6 +67,12 @@ export default function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             登录
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            还没有账号？{' '}
+            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              立即注册
+            </Link>
+          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">

@@ -17,24 +17,18 @@ export interface User {
   twoFactorEnabled: boolean;
 }
 
-// 临时用户数据，后续会迁移到数据库
-export const users: User[] = [
-  {
-    id: "1",
-    username: "tiger",
-    name: "tiger",
-    email: "admin@tigerkits.com",
-    password: "tiger@2024",
-    avatar: "/avatars/default.png",
-    image: "/avatars/default.png",
-    twoFactorSecret: authenticator.generateSecret(),
-    twoFactorEnabled: false,
+export const verifyTOTP = (token: string, secret: string): boolean => {
+  try {
+    return authenticator.verify({ token, secret });
+  } catch (error) {
+    console.error('TOTP verification error:', error);
+    return false;
   }
-];
+};
 
-export function verifyTOTP(token: string, secret: string): boolean {
-  return authenticator.verify({ token, secret });
-}
+export const generateSecret = (): string => {
+  return authenticator.generateSecret();
+};
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -44,6 +38,7 @@ export const authOptions: AuthOptions = {
       credentials: {
         username: { label: '用户名', type: 'text' },
         password: { label: '密码', type: 'password' },
+        code: { label: '验证码', type: 'text' }
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
@@ -75,6 +70,19 @@ export const authOptions: AuthOptions = {
           throw new Error('密码错误');
         }
 
+        // 如果启用了两步验证，但没有提供验证码
+        if (user.twoFactorEnabled && !credentials.code) {
+          throw new Error('requires2FA');
+        }
+
+        // 如果启用了两步验证，验证验证码
+        if (user.twoFactorEnabled && credentials.code) {
+          const isValidCode = verifyTOTP(credentials.code, user.twoFactorSecret || '');
+          if (!isValidCode) {
+            throw new Error('验证码无效');
+          }
+        }
+
         return {
           id: user.id,
           username: user.username,
@@ -92,18 +100,15 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log('JWT callback - user data:', user);
         token.id = user.id;
         token.username = user.username;
         token.email = user.email;
         token.name = user.name;
         token.avatar = user.avatar;
       }
-      console.log('JWT callback - token:', token);
       return token;
     },
     async session({ session, token }) {
-      console.log('Session callback - token:', token);
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
@@ -111,7 +116,6 @@ export const authOptions: AuthOptions = {
         session.user.name = token.name as string;
         session.user.avatar = token.avatar as string;
       }
-      console.log('Session callback - final session:', session);
       return session;
     },
   },
@@ -119,6 +123,6 @@ export const authOptions: AuthOptions = {
     signIn: '/auth/login',
     error: '/auth/login',
   },
-  debug: true,
+  debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
 }; 
